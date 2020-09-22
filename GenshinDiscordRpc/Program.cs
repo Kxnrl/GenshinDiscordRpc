@@ -55,8 +55,7 @@ namespace GenshinDiscordRpc
                         var proc = Process.GetProcesses().FirstOrDefault(x => x.MainWindowHandle == hndl);
                         if (proc == null)
                         {
-                            Debug.Print($"Not match game process.");
-                            continue;
+                            throw new Exception($"Not match game process.");
                         }
 
                         Debug.Print($"Check process with {hndl} | {proc?.ProcessName}");
@@ -93,6 +92,8 @@ namespace GenshinDiscordRpc
                     }
                     catch (Exception e)
                     {
+                        playing = false;
+                        client.ClearPresence();
                         Debug.Print($"{e.Message}{Environment.NewLine}{e.StackTrace}");
                     }
 
