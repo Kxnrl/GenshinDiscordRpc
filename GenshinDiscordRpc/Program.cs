@@ -47,6 +47,8 @@ namespace GenshinDiscordRpc
                     if (hndl == IntPtr.Zero)
                     {
                         Debug.Print($"Not found game process.");
+                        playing = false;
+                        client.ClearPresence();
                         continue;
                     }
 
