@@ -44,7 +44,8 @@ namespace GenshinDiscordRpc
                     Debug.Print($"InLoop");
 
                     var hndl = FindWindow("UnityWndClass", "原神");
-                    if (hndl == IntPtr.Zero)
+                    var hndleng = FindWindow("UnityWndClass", "Genshin Impact");
+                    if (hndl == IntPtr.Zero && hndleng == IntPtr.Zero)
                     {
                         Debug.Print($"Not found game process.");
                         playing = false;
@@ -54,14 +55,15 @@ namespace GenshinDiscordRpc
 
                     try
                     {
+                        var proceng = Process.GetProcesses().FirstOrDefault(x => x.MainWindowHandle == hndleng);
                         var proc = Process.GetProcesses().FirstOrDefault(x => x.MainWindowHandle == hndl);
-                        if (proc == null)
+                        if (proc == null && proceng == null)
                         {
                             throw new Exception($"Not match game process.");
                         }
 
-                        Debug.Print($"Check process with {hndl} | {proc?.ProcessName}");
-                        if ("YuanShen".Equals(proc.ProcessName))
+                        Debug.Print($"Check process with {hndl} | {proc?.ProcessName} || {hndleng} | {proceng?.ProcessName}");
+                        if ("YuanShen".Equals(proc.ProcessName) || "GenshinImpact".Equals(proceng.ProcessName))
                         {
                             if (!playing)
                             {
@@ -72,7 +74,7 @@ namespace GenshinDiscordRpc
                                     Assets = new Assets
                                     {
                                         LargeImageKey = "genshin",
-                                        LargeImageText = "原神"
+                                        LargeImageText = ("GenshinImpact".Equals(proc.ProcessName)) ? "原神" : "Genshin Impact",
                                     },
                                     Timestamps = Timestamps.Now,
                                     State = "Teyvat continent"
@@ -109,7 +111,7 @@ namespace GenshinDiscordRpc
 
             var notifyMenu = new ContextMenu();
             var exitButton = new MenuItem("Exit");
-            var autoButton = new MenuItem("AtuoStart" + "    " + (AutoStart.Check() ? "√" : "✘"));
+            var autoButton = new MenuItem("AutoStart" + "    " + (AutoStart.Check() ? "√" : "✘"));
             notifyMenu.MenuItems.Add(0, autoButton);
             notifyMenu.MenuItems.Add(1, exitButton);
             
@@ -140,7 +142,7 @@ namespace GenshinDiscordRpc
                     AutoStart.Set();
                 }
 
-                autoButton.Text = "AtuoStart" + "    " + (AutoStart.Check() ? "√" : "✘");
+                autoButton.Text = "AutoStart" + "    " + (AutoStart.Check() ? "√" : "✘");
             };
 
             
