@@ -11,7 +11,8 @@ namespace GenshinDiscordRpc
 {
     static class Program
     {
-        private const string AppId = "757909870258159646";
+        private const string AppId_Zh = "757909870258159646";
+        private const string AppId_En = "761911105081442335";
 
         [STAThread]
         static void Main()
@@ -32,8 +33,10 @@ namespace GenshinDiscordRpc
             
             Task.Run(async () =>
             {
-                using var client = new DiscordRpcClient(AppId);
-                client.Initialize();
+                using var clientZh = new DiscordRpcClient(AppId_Zh);
+                using var clientEn = new DiscordRpcClient(AppId_En);
+                clientZh.Initialize();
+                clientEn.Initialize();
 
                 var playing = false;
                 
@@ -43,61 +46,109 @@ namespace GenshinDiscordRpc
 
                     Debug.Print($"InLoop");
 
-                    var hndl = FindWindow("UnityWndClass", "原神");
-                    var hndleng = FindWindow("UnityWndClass", "Genshin Impact");
-                    if (hndl == IntPtr.Zero && hndleng == IntPtr.Zero)
+                    var hndlZh = FindWindow("UnityWndClass", "原神");
+                    var hndlEn = FindWindow("UnityWndClass", "Genshin Impact");
+                    if (hndlZh == IntPtr.Zero && 
+                        hndlEn == IntPtr.Zero)
                     {
                         Debug.Print($"Not found game process.");
                         playing = false;
-                        client.ClearPresence();
+                        if (clientEn.CurrentPresence != null)
+                        {
+                            clientEn.ClearPresence();
+                        }
+                        if (clientZh.CurrentPresence != null)
+                        {
+                            clientZh.ClearPresence();
+                        }
                         continue;
                     }
 
                     try
                     {
-                        var proceng = Process.GetProcesses().FirstOrDefault(x => x.MainWindowHandle == hndleng);
-                        var proc = Process.GetProcesses().FirstOrDefault(x => x.MainWindowHandle == hndl);
-                        if (proc == null && proceng == null)
+                        var procEn = Process.GetProcesses().FirstOrDefault(x => x.MainWindowHandle == hndlEn);
+                        var procZh = Process.GetProcesses().FirstOrDefault(x => x.MainWindowHandle == hndlZh);
+                        if (procEn == null && 
+                            procZh == null)
                         {
                             throw new Exception($"Not match game process.");
                         }
 
-                        Debug.Print($"Check process with {hndl} | {proc?.ProcessName} || {hndleng} | {proceng?.ProcessName}");
-                        if ("YuanShen".Equals(proc.ProcessName) || "GenshinImpact".Equals(proceng.ProcessName))
+                        Debug.Print($"Check process with {hndlZh} | {procZh?.ProcessName} || {hndlEn} | {procEn?.ProcessName}");
+                        
+                        if ("YuanShen".Equals(procZh?.ProcessName))
                         {
                             if (!playing)
                             {
                                 playing = true;
 
-                                client.SetPresence(new RichPresence
+                                clientZh.SetPresence(new RichPresence
                                 {
                                     Assets = new Assets
                                     {
                                         LargeImageKey = "genshin",
-                                        LargeImageText = ("GenshinImpact".Equals(proc.ProcessName)) ? "原神" : "Genshin Impact",
+                                        LargeImageText = "原神",
+                                    },
+                                    Timestamps = Timestamps.Now,
+                                    State = "提瓦特大陆"
+                                });
+
+                                Debug.Print($"Set RichPresence to {procZh?.ProcessName}");
+                            }
+                            else
+                            {
+                                Debug.Print($"Keep RichPresence to {procZh?.ProcessName}");
+                            }
+                        }
+                        else if ("GenshinImpact".Equals(procEn?.ProcessName))
+                        {
+                            if (!playing)
+                            {
+                                playing = true;
+
+                                clientEn.SetPresence(new RichPresence
+                                {
+                                    Assets = new Assets
+                                    {
+                                        LargeImageKey = "genshin",
+                                        LargeImageText = "Genshin Impact",
                                     },
                                     Timestamps = Timestamps.Now,
                                     State = "Teyvat continent"
                                 });
 
-                                Debug.Print($"Set RichPresence to {proc.ProcessName}");
+                                Debug.Print($"Set RichPresence to  {procEn?.ProcessName}");
                             }
                             else
                             {
-                                Debug.Print($"Keep RichPresence to {proc.ProcessName}");
+                                Debug.Print($"Keep RichPresence to {procEn?.ProcessName}");
                             }
                         }
                         else
                         {
                             playing = false;
-                            client.ClearPresence();
+                            if (clientEn.CurrentPresence != null)
+                            {
+                                clientEn.ClearPresence();
+                            }
+                            if (clientZh.CurrentPresence != null)
+                            {
+                                clientZh.ClearPresence();
+                            }
                             Debug.Print($"Clear RichPresence");
                         }
                     }
                     catch (Exception e)
                     {
                         playing = false;
-                        client.ClearPresence();
+                        if (clientEn.CurrentPresence != null)
+                        {
+                            clientEn.ClearPresence();
+                        }
+                        if (clientZh.CurrentPresence != null)
+                        {
+                            clientZh.ClearPresence();
+                        }
                         Debug.Print($"{e.Message}{Environment.NewLine}{e.StackTrace}");
                     }
 
